@@ -9,13 +9,11 @@ class FFNN:
         # Количество входных нейронов равно количеству пикселей. Каждый нейрон принимает 3 признака (RGB)
         input_layer = Input(shape=(shape[0] * shape[1], 3), name="Input")
         # Скрытый слой размера hidden_layer_size c функцией активации activation
-        hidden_layer_1 = Dense(units=hidden_layer_size, activation=activation, name="Hidden1")(input_layer)
-        hidden_layer_2 = Dense(units=hidden_layer_size, activation=activation, name="Hidden2")(hidden_layer_1)
+        hidden_layer = Dense(units=hidden_layer_size, activation=activation, name="Hidden")(input_layer)
         # Скрытый слой имеет выход размерности (hidden_layer_size, 3).
-        # Слой pre_output имеет размерность выхода (1, 3)
-        # Делаем слой размера delay, который принимает транспонированный выход слоя pre_output
-        flattened_layer = Flatten()(hidden_layer_2)
-        # Выходной слой получает выход flattened_layer размерности (3, total_shapes_num)
+        # Flatten преобразует выход слоя (hidden_layer_size, 3) в (hidden_layer_size * 3, 1)
+        flattened_layer = Flatten()(hidden_layer)
+        # Выходной слой получает выход flattened_layer
         output_layer = Dense(units=total_shapes_num, name="Output", activation="sigmoid")(flattened_layer)
         # На выходе всей модели имеем total_shapes_num чисел,
         # где каждый выход обозначает количество фигур данного типа
