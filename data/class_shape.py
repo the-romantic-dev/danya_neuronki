@@ -1,5 +1,6 @@
 import math
 import random
+from typing import Callable
 
 from data.class_color import Color
 from data.data_class_shape_box import ShapeBox
@@ -28,10 +29,14 @@ class Shape:
         self.points = self.__points()
 
     @staticmethod
-    def random(shape_box: ShapeBox):
-        color = Color.random()
+    def random(shape_box: ShapeBox, is_double_shape: Callable):
+        # color = Color.random()
+        color = Color(0, 0, 0)
+        shape_type = random.choice(list(ShapeType))
+        while is_double_shape(shape_type):
+            shape_type = random.choice(list(ShapeType))
         shape_params = ShapeParams(
-            shape_box=shape_box, color=color, shape_type=random.choice(list(ShapeType))
+            shape_box=shape_box, color=color, shape_type=shape_type
         )
         return Shape(shape_params)
 
@@ -45,8 +50,8 @@ class Shape:
             points = self.__ellipse_points()
         elif shape_type == ShapeType.TRIANGLE:
             points = self.__triangle_points()
-        elif shape_type == ShapeType.PENTAGON:
-            points = self.__pentagon_points()
+        # elif shape_type == ShapeType.PENTAGON:
+        #     points = self.__pentagon_points()
         elif shape_type == ShapeType.STAR:
             points = self.__star_points()
 

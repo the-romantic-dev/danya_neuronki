@@ -1,4 +1,5 @@
 import json
+from itertools import combinations
 
 from PIL import Image
 
@@ -24,29 +25,28 @@ def image_to_data(image_path: str):
 
     # Проходимся по каждому пикселю изображения
     for y in range(height):
+        row = []
         for x in range(width):
             # Получаем цвет пикселя
             r, g, b = img_rgb.getpixel((x, y))
 
             # Добавляем цвет в список
-            color_list.append((r / 255.0, g / 255.0, b / 255.0))
-
+            row.append((r / 255.0, g / 255.0, b / 255.0))
+            # if r == 0 and g == 0 and b == 0:
+            #     color_list.append(1)
+            # else:
+            #     color_list.append(0)
+        color_list.append(row)
     return color_list
 
 
-def generate(_generator, folder, data_len):
+def generate(_generator, folder, data_len, encoding_dict: dict):
     json_data = {}
     for i in range(data_len):
         shapes = _generator.generate_shapes()
         _generator.save_image(f'{folder}/{filename(i)}')
-        y_data = []
-        for j in range(len(list(ShapeType))):
-            elem = 0
-            for shape in shapes:
-                val = shape.shape_params.shape_type.value
-                if j == val:
-                    elem += 1
-            y_data.append(elem)
+        key = frozenset([s.shape_params.shape_type for s in shapes])
+        y_data = encoding_dict[key]
         json_data[filename(i)] = {
             "y": y_data,
             "x": image_to_data(f"{folder}/{filename(i)}")
@@ -56,9 +56,32 @@ def generate(_generator, folder, data_len):
         json.dump(json_data, file)
 
 
+def generate_combinations_to_encoding(k: int):
+    shape_types = list(ShapeType)
+    class_combinations = []
+    class_combinations.extend(combinations(shape_types, k))
+
+    encoded_combinations = []
+    for i, combo in enumerate(class_combinations):
+        encoded_combo = []
+        for j, _ in enumerate(class_combinations):
+            if j == i:
+                encoded_combo.append(1)
+            else:
+                encoded_combo.append(0)
+        encoded_combinations.append(encoded_combo)
+
+    result = {}
+    for i in range(len(class_combinations)):
+        result[frozenset(class_combinations[i])] = encoded_combinations[i]
+    return result
+
+
 if __name__ == '__main__':
-    generator = RandomShapeGenerator(num_shapes=2, image_width=img_shape[0], image_height=img_shape[0],
+    num_shapes = 2
+    generator = RandomShapeGenerator(num_shapes=num_shapes, image_width=img_shape[0], image_height=img_shape[0],
                                      min_shape_size=20,
-                                     max_shape_size=50)
-    generate(generator, teach_folder, train_len)
-    generate(generator, test_folder, test_len)
+                                     max_shape_size=100)
+    combinations_to_encoding = generate_combinations_to_encoding(num_shapes)
+    generate(generator, teach_folder, train_len, combinations_to_encoding)
+    generate(generator, test_folder, test_len, combinations_to_encoding)

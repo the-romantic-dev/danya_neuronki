@@ -3,6 +3,7 @@ from PIL import Image, ImageDraw
 from data.class_color import Color
 from data.class_shape import Shape
 from data.data_class_shape_box import ShapeBox
+from data.enum_shape_type import ShapeType
 from data.util import is_shape_box_overlapping, is_shape_box_included
 
 
@@ -23,10 +24,17 @@ class RandomShapeGenerator:
             self.clear()
         for _ in range(self.num_shapes):
             shape_box = self.generate_shape_box()
-            shape = Shape.random(shape_box)
+            shape = Shape.random(shape_box, self.is_double_type)
             self.draw_shape(shape)
             self.shapes.append(shape)
         return self.shapes
+
+    def is_double_type(self, shape_type: ShapeType) -> bool:
+        for ex_shape in self.shapes:
+            if shape_type == ex_shape.shape_params.shape_type:
+                return True
+        return False
+
     def generate_shape_box(self):
         # Генерация закончится как только будет ShapeBox не пересекающийся с уже созданными ShapeBox.
         while True:
@@ -61,6 +69,7 @@ class RandomShapeGenerator:
 
     def clear(self):
         bg_color = Color.random().rgb()
+        # bg_color = Color(255, 255, 255).rgb()
         self.image = Image.new('RGB', (self.image_width, self.image_height), color=bg_color)
         self.draw = ImageDraw.Draw(self.image)
         self.shapes = []
